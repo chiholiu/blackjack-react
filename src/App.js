@@ -14,7 +14,9 @@ class App extends React.Component {
       random: null,
       player: [],
       computer: [],
-      card: null
+      card: null,
+      playerScore: 0,
+      computerScore: 0
     };
     
     this.getCard = this.getCard.bind(this);
@@ -31,7 +33,13 @@ class App extends React.Component {
 
   checkScore(playerArray) {
     const playerScore = playerArray;
-    const result = playerScore.map(card => this.getCardValue(card));
+    const newArray = playerScore.map(card => this.getCardValue(card));
+    const reducer = (accumulator, currentValue) => accumulator + currentValue;
+    const result = newArray.reduce(reducer);
+    this.setState({
+      playerScore: result
+    })
+    // return result;
   }
 
   getCardValue (card) {
@@ -62,8 +70,6 @@ class App extends React.Component {
     }
   }
 
-
-
   shuffleCard() {
     const rand = array[Math.floor(array.length * Math.random())];
     this.state.computer.length < 2 ? this.state.computer.push(rand) : this.state.player.push(rand);
@@ -77,7 +83,6 @@ class App extends React.Component {
     return (
       <div>
         <div className="App">
-        {/* <button onClick={this.checkScore}>Check Score</button> */}
           <button onClick={this.getCard}>Play</button>
           <button id="shuffleButton" onClick={this.shuffle}>Shuffle</button>
         </div>
@@ -90,6 +95,13 @@ class App extends React.Component {
           <p>Player</p>
           <p>{this.state.player}</p>
         </div>
+
+        <div>
+          <p>Player Score</p>
+          <span>{this.state.playerScore}</span>
+        </div>
+
+
       </div>
     );
   }
