@@ -3,6 +3,7 @@ import './App.css';
 
 let array = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A'];
 let result = 0;
+let totalPlayerScore = 0;
 
 // const suits = ['♣', '♦', '♥', '♠'];
 // const values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A'];
@@ -19,7 +20,8 @@ class App extends React.Component {
       card: null,
       playerScore: 0,
       playerScoreArray: [],
-      computerScore: 0
+      computerScore: 0,
+      totalPlayerScore: 0
     };
     
     this.getCard = this.getCard.bind(this);
@@ -46,14 +48,25 @@ class App extends React.Component {
   }
 
   calculateScore() {
-    if( result < 21 ) {
-      this.state.playerScoreArray.push(result);
-      this.setState({
-        player: []
-      });
-    } else {
-      this.state.playerScoreArray.push(result + (-result + 10));
-    }
+    result < 21 ? this.state.playerScoreArray.push(Math.round(result + (result * 1.2))): this.state.playerScoreArray.push(Math.round(result - (result * 1.2)));
+    
+    this.calculateTotalScore(this.state.playerScoreArray);
+    console.log('array of playerScore' + this.state.playerScoreArray);
+    this.setState({
+      player: []
+    });
+
+  }
+
+  calculateTotalScore(element) {
+    const playerScore = element;
+    const newPlayerArray = playerScore.map(card => card);
+    const reducer = (accumulator, currentValue) => accumulator + currentValue;
+    totalPlayerScore = newPlayerArray.reduce(reducer);
+    console.log(totalPlayerScore);
+    this.setState({
+      totalPlayerScore: totalPlayerScore
+    })
   }
 
   getCardValue (card) {
@@ -76,6 +89,9 @@ class App extends React.Component {
       this.state
     )
     this.checkScore(this.state.player);
+    if(result > 21) {
+      this.calculateScore();
+    }
   }
 
   shuffle() {
@@ -125,6 +141,8 @@ class App extends React.Component {
           <p>Player Score</p>
           <span>{this.state.playerScore}</span>
         </div>
+
+        <div>{this.state.totalPlayerScore}</div>
       </div>
     );
   }
