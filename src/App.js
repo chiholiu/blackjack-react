@@ -4,6 +4,8 @@ import './App.css';
 let array = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A'];
 let result = 0;
 let totalPlayerScore = 0;
+let computerScore = 'computerScore';
+let playerScore = 'playerScore';
 
 // const suits = ['♣', '♦', '♥', '♠'];
 // const values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A'];
@@ -13,60 +15,136 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = { 
-
       random: null,
       player: [],
       computer: [],
       card: null,
       playerScore: 0,
-      playerScoreArray: [],
       computerScore: 0,
+      playerScoreArray: [],
+      computerScoreArray: [],
       totalPlayerScore: 0
     };
     
     this.getCard = this.getCard.bind(this);
     this.shuffle = this.shuffle.bind(this);
+    this.shuffleCard = this.shuffleCard.bind(this);
     this.checkScore = this.checkScore.bind(this);
     this.calculateScore = this.calculateScore.bind(this);
     this.reset = this.reset.bind(this);
+    this.checkBothCards = this.checkBothCards.bind(this);
+    this.recalculateComputerScore = this.recalculateComputerScore.bind(this);
   }
 
-  componentDidMount() {
-    window.addEventListener('load', function() {
-        console.log('loaded successfully ');
-    });
-  }
+  // componentDidMount() {
+  //   window.addEventListener('load', function() {
+  //     console.log('loaded successfully ');
+  //   });
+  // }
 
-  checkScore(playerArray) {
-    const playerScore = playerArray;
-    const newArray = playerScore.map(card => this.getCardValue(card));
-    const reducer = (accumulator, currentValue) => accumulator + currentValue;
-    result = newArray.reduce(reducer);
+  getCard() {
+    const rand = array[Math.floor(array.length * Math.random())];
     this.setState({
-      playerScore: result
-    })
+      player: [...this.state.player, rand]
+    }, () => this.checkScore(this.state.player, playerScore));
+    console.log(result);
+    if(result > 21) {
+      this.calculateScore();
+    } else if (result === 21) {
+      console.log('black jack dude');
+    } else {
+      // this.calculateScore();
+      console.log('still in the game');
+    }
+  }
+
+  shuffle() {
+    for(var i = 0; i < 3; i++) {
+      this.shuffleCard(i);
+    }
+  }
+
+  shuffleComputerCard() {
+    const rand = array[Math.floor(array.length * Math.random())];
+    this.setState({
+      computer: [...this.state.computer, rand]
+    }, () => this.recalculateComputerScore(this.state.computer, computerScore));
+  }
+
+  recalculateComputerScore(element, keyValue) {
+    const newComputerArray = element.map(card => this.getCardValue (card));
+    const reducer = (accumulator, currentValue) => accumulator + currentValue;
+    let totalComputerScore = newComputerArray.reduce(reducer, 0);
+    this.setState({
+      [keyValue]: totalComputerScore
+    }, () => this.checkBothCards());
+  }
+
+  shuffleCard(n) {
+    if(n > -1) {
+      let rand = array[Math.floor(array.length * Math.random())]
+      if(this.state.computer.length < 2) {
+        this.setState({computer: [...this.state.computer, rand]}, () => {
+          this.checkScore(this.state.computer, computerScore);
+          this.shuffleCard(n-1);
+        });
+      } else {
+        this.setState({player: [...this.state.player, rand]}, () => {
+          this.checkScore(this.state.player, playerScore);
+          this.shuffleCard(n-1);
+        });
+      }
+    }
+    document.getElementById('shuffleButton').setAttribute('disabled', '');
+  }
+
+  checkScore(theArray, keyName) {
+    const newArray = theArray.map(card => this.getCardValue(card));
+    const reducer = (accumulator, currentValue) => accumulator + currentValue;
+    result = newArray.reduce(reducer, 0);
+    this.setState({
+      [keyName]: result
+    });
+    console.log(this.state.computerScore);
+    console.log(this.state.playerScore);
   }
 
   calculateScore() {
-    result < 21 ? this.state.playerScoreArray.push(Math.round(result + (result * 1.2))): this.state.playerScoreArray.push(Math.round(result - (result * 1.2)));
-    
+    if(result < 21) {
+      this.setState({
+        playerScoreArray: [...this.state.playerScoreArray, Math.round(result + (result * 1.2))]
+      });
+    } else {
+      this.setState({
+        playerScoreArray: [...this.state.playerScoreArray, Math.round(result - (result * 1.2))]
+      });
+    }
     this.calculateTotalScore(this.state.playerScoreArray);
-    console.log('array of playerScore' + this.state.playerScoreArray);
     this.setState({
-      player: []
+      player: [],
+      computer: []
     });
-
   }
 
   calculateTotalScore(element) {
     const playerScore = element;
     const newPlayerArray = playerScore.map(card => card);
     const reducer = (accumulator, currentValue) => accumulator + currentValue;
-    totalPlayerScore = newPlayerArray.reduce(reducer);
-    console.log(totalPlayerScore);
+    totalPlayerScore = newPlayerArray.reduce(reducer, 0);
     this.setState({
       totalPlayerScore: totalPlayerScore
     })
+  }
+
+  checkBothCards() {
+    console.log(this.state.computerScore);
+    if(this.state.computerScore < 17) {
+      this.shuffleComputerCard();
+    } else if (this.state.computerScore > 17 && this.state.computerScore < 21  && this.state.playerScore <= 21) {
+      console.log('check winner');
+    } else {
+      return;
+    }
   }
 
   getCardValue (card) {
@@ -82,38 +160,13 @@ class App extends React.Component {
     }
   }
 
-  getCard() {
-    const rand = array[Math.floor(array.length * Math.random())];
-    this.state.player.push(rand);
-    this.setState(
-      this.state
-    )
-    this.checkScore(this.state.player);
-    if(result > 21) {
-      this.calculateScore();
-    }
-  }
-
-  shuffle() {
-    for(var i = 0; i < 3; i++) {
-      this.shuffleCard();
-    }
-  }
-
   reset() {
-    this.setState({
-      computer: [],
-      player: []
-    })
-  }
-
-  shuffleCard() {
-    const rand = array[Math.floor(array.length * Math.random())];
-    this.state.computer.length < 2 ? this.state.computer.push(rand) : this.state.player.push(rand);
-    document.getElementById('shuffleButton').setAttribute('disabled', '');
-    this.setState(
-      this.state
-    )
+    return function() {
+      this.setState({
+        computer: [],
+        player: []
+      })
+    }
   }
 
   render() {
@@ -134,7 +187,7 @@ class App extends React.Component {
         </div>
 
         <div>
-          <button onClick={this.calculateScore}>Fold</button>
+          <button onClick={this.checkBothCards}>Fold</button>
         </div>
 
         <div>
